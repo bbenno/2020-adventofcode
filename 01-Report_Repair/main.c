@@ -39,6 +39,19 @@
  *
  * Of course, your expense report is much larger. Find the two entries that sum
  * to 2020; what do you get if you multiply them together?
+ *
+ * --- Part Two ---
+ *
+ *  The Elves in accounting are thankful for your help; one of them even offers
+ *  you a starfish coin they had left over from a past vacation. They offer you
+ *  a second one if you can find three numbers in your expense report that meet
+ *  the same criteria.
+ *
+ *  Using the above example again, the three entries that sum to 2020 are 979,
+ *  366, and 675. Multiplying them together produces the answer, 241861950.
+ *
+ *  In your expense report, what is the product of the three entries that sum
+ *  to 2020?
  */
 
 /*
@@ -50,8 +63,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define TARGET_VALUE 2020
+#define CONFIG_PART_TWO true
 
 /**
  * struct node - Element of naive linked list.
@@ -111,13 +126,77 @@ int int_bsearch(const int *ptr, int left, int right, int key)
 	return left - 1;
 }
 
+/**
+ * solve_part1() - Find and print product of the two searched numbers.
+ * @ptr: pointer to the array to examine.
+ * @count: number of elements in the array.
+ */
+void solve_part1(const int *ptr, size_t count)
+{
+	/* PREPARE CLIPPING */
+	int clip_value = (TARGET_VALUE / 2) - 1;
+	int clip_index = int_bsearch(ptr, 0, count, clip_value);
+
+	/* FIND MATCHING TUPLE */
+	for (int i = count - 1; i > clip_index; --i) {
+		for (int j = i - 1; j >= 0; --j) {
+			int delta = ptr[i] + ptr[j] - TARGET_VALUE;
+			if (delta == 0) {
+				printf("%u * %u = %u\n", ptr[i], ptr[j],
+						ptr[i] * ptr[j]);
+				return;
+			} else if (delta < 0) {
+				// ptr[j] will only get smaller in following
+				// iteration
+				break;
+			}
+		}
+	}
+	fprintf(stderr, "No matching values found\n");
+}
+
+/**
+ * solve_part2() - Find and print product of the three searched numbers.
+ * @ptr: pointer to the array to examine.
+ * @count: number of elements in the array.
+ */
+void solve_part2(const int *ptr, size_t count)
+{
+	/* PREPARE CLIPPING */
+	int clip_value = TARGET_VALUE / 3;
+	int clip_index = int_bsearch(ptr, 0, count, clip_value);
+
+	/* FIND MATCHING TRIPLE */
+	for (int i = count - 1; i > clip_index; --i) {
+		for (int j = i - 1; j >= 0; --j) {
+			if (ptr[i] + ptr[j] > TARGET_VALUE)
+				continue;
+			for (int k = j - 1; k >= 0; --k) {
+				int delta = ptr[i] + ptr[j] + ptr[k] -
+					TARGET_VALUE; if (delta == 0) {
+						printf("%u * %u * %u = %u\n",
+								ptr[i], ptr[j],
+								ptr[k], ptr[i]
+								* ptr[j] *
+								ptr[k]);
+					return;
+				} else if (delta < 0) {
+					// ptr[k] will only get smaller in
+					// following iteration
+					break;
+				}
+			}
+		}
+	}
+	fprintf(stderr, "No matching values found\n");
+}
+
 int main(int argc, char *argv[])
 {
 	FILE *expense;
 	int nr;
 	size_t count = 0;
 	struct node *head = NULL;
-	int clip_value, clip_index;
 
 	if (argc < 2) {
 		print_usage(argv[0]);
@@ -146,29 +225,11 @@ int main(int argc, char *argv[])
 	/* SORT IN ASCENDING ORDER */
 	qsort(input, count, sizeof(*input), compare_int);
 
-	/* PREPARE CLIPPING */
-	clip_value = (TARGET_VALUE / 2) - 1;
-	clip_index = int_bsearch(input, 0, count, clip_value);
+	if (CONFIG_PART_TWO)
+		solve_part2(input, count);
+	else
+		solve_part1(input, count);
 
-	/* FIND MATCHING PAIR */
-	for (int i = count - 1; i > clip_index; --i) {
-		for (int j = i - 1; j >= 0; --j) {
-			int delta = input[i] + input[j] - TARGET_VALUE;
-			if (delta == 0) {
-				printf("%u * %u = %u\n", input[i], input[j],
-						input[i] * input[j]);
-				goto success;
-			} else if (delta < 0) {
-				// input[j] will only get smaller in following
-				// iteration
-				break;
-			}
-		}
-	}
-
-	fprintf(stderr, "No matching values found\n");
-
-success:
 	free(input);
 	return EXIT_SUCCESS;
 }
