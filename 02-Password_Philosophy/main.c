@@ -64,6 +64,11 @@ int main(int argc, char *argv[])
 	}
 
 	password_list = fopen(argv[1], "r");
+	if (!password_list) {
+		fprintf(stderr, "File '%s' not found\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
+
 	while(1 < fscanf(password_list, "%u-%u %c: %59s", &min_times, &max_times,
 				&policy_letter, password_buffer)) {
 		unsigned int occourences = 0;

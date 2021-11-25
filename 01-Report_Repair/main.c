@@ -205,6 +205,11 @@ int main(int argc, char *argv[])
 
 	/* READ FROM FILE */
 	expense = fopen(argv[1], "r");
+	if (!expense)  {
+		fprintf(stderr, "File '%s' not found!\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
+
 	while (0 < fscanf(expense, "%u\n", &nr)) {
 		struct node *current = malloc(sizeof(struct node));
 		*current = (struct node){.value = nr, .next = head};
