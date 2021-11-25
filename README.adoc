@@ -1,0 +1,10 @@
+= Advent of Code 2020
+Benno Bielmeier <git@bbenno.com>
+
+Programs written in C to solve the puzzles of the https://adventofcode.com/2020[Advent of Code 2020].
+
+== License
+
+Copyright © 2020-2021 Benno Bielmeier
+
+Licensed under the https://opensource.org/licenses/EUPL-1.2[EUPL-1.2].
