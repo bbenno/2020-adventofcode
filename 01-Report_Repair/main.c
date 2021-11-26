@@ -133,26 +133,20 @@ int int_bsearch(const int *ptr, int left, int right, int key)
  */
 void solve_part1(const int *ptr, size_t count)
 {
-	/* PREPARE CLIPPING */
-	int clip_value = (TARGET_VALUE / 2) - 1;
-	int clip_index = int_bsearch(ptr, 0, count, clip_value);
+	const int *max = ptr + count;
+	const int *min = ptr;
 
-	/* FIND MATCHING TUPLE */
-	for (int i = count - 1; i > clip_index; --i) {
-		for (int j = i - 1; j >= 0; --j) {
-			int delta = ptr[i] + ptr[j] - TARGET_VALUE;
-			if (delta == 0) {
-				printf("%u * %u = %u\n", ptr[i], ptr[j],
-						ptr[i] * ptr[j]);
-				return;
-			} else if (delta < 0) {
-				// ptr[j] will only get smaller in following
-				// iteration
-				break;
-			}
-		}
+	while (*min + *max != TARGET_VALUE && min != max) {
+		while (*max + *min > TARGET_VALUE)
+			--max;
+		while (*min + *max < TARGET_VALUE)
+			++min;
 	}
-	fprintf(stderr, "No matching values found\n");
+
+	if (min != max)
+		printf("%d * %d = %d\n", *min, *max, *min * *max);
+	else
+		fprintf(stderr, "No matching values found\n");
 }
 
 /**
@@ -162,33 +156,25 @@ void solve_part1(const int *ptr, size_t count)
  */
 void solve_part2(const int *ptr, size_t count)
 {
-	/* PREPARE CLIPPING */
-	int clip_value = TARGET_VALUE / 3;
-	int clip_index = int_bsearch(ptr, 0, count, clip_value);
+	const int *max = ptr + count;
+	const int *min = ptr;
+	const int *iterator = ptr + 1;
 
-	/* FIND MATCHING TRIPLE */
-	for (int i = count - 1; i > clip_index; --i) {
-		for (int j = i - 1; j >= 0; --j) {
-			if (ptr[i] + ptr[j] > TARGET_VALUE)
-				continue;
-			for (int k = j - 1; k >= 0; --k) {
-				int delta = ptr[i] + ptr[j] + ptr[k] -
-					TARGET_VALUE; if (delta == 0) {
-						printf("%u * %u * %u = %u\n",
-								ptr[i], ptr[j],
-								ptr[k], ptr[i]
-								* ptr[j] *
-								ptr[k]);
-					return;
-				} else if (delta < 0) {
-					// ptr[k] will only get smaller in
-					// following iteration
-					break;
-				}
-			}
-		}
-	}
-	fprintf(stderr, "No matching values found\n");
+	do {
+		while (*max + *min + *iterator > TARGET_VALUE && iterator != max)
+			--max;
+		while (*max + *min + *iterator < TARGET_VALUE && iterator != max)
+			++iterator;
+		if (*min + *iterator + *max != TARGET_VALUE)
+			break;
+		++min;
+		iterator = min + 1;
+	} while (iterator != max);
+
+	if (min + 1 != max)
+		printf("%d * %d * %d = %d\n", *min, *iterator, *max, *min * *iterator * *max);
+	else
+		fprintf(stderr, "No matching values found\n");
 }
 
 int main(int argc, char *argv[])
