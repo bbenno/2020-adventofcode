@@ -3,6 +3,11 @@ Benno Bielmeier <git@bbenno.com>
 
 Programs written in C to solve the puzzles of the https://adventofcode.com/2020[Advent of Code 2020].
 
+== Repository Structure
+
+Each day of the advent calendar (with its puzzle) has its separate folder.
+Each solution of these folders is (logically) independent of the other solutions and is comprised by a single `main.c` file, the `input` file containing the puzzle data and a `Makefile`.
+
 == License
 
 Copyright © 2020-2021 Benno Bielmeier
