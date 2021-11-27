@@ -35,6 +35,38 @@
  * limits of their respective policies.
  *
  * How many passwords are valid according to their policies?
+ *
+ * --- Part Two ---
+ *
+ * While it appears you validated the passwords correctly, they don't seem to
+ * be what the Official Toboggan Corporate Authentication System is expecting.
+ *
+ * The shopkeeper suddenly realizes that he just accidentally explained the
+ * password policy rules from his old job at the sled rental place down the
+ * street! The Official Toboggan Corporate Policy actually works a little
+ * differently.
+ *
+ * Each policy actually describes two positions in the password, where 1 means
+ * the first character, 2 means the second character, and so on. (Be careful;
+ * Toboggan Corporate Policies have no concept of "index zero"!) Exactly one of
+ * these positions must contain the given letter. Other occurrences of the
+ * letter are irrelevant for the purposes of policy enforcement.
+ *
+ * Given the same example list from above:
+ *
+ * - 1-3 a: abcde is valid: position 1 contains a and position 3 does not.
+ * - 1-3 b: cdefg is invalid: neither position 1 nor position 3 contains b.
+ * - 2-9 c: ccccccccc is invalid: both position 2 and position 9 contain c.
+ *
+ * How many passwords are valid according to the new interpretation of the
+ * policies?
+ */
+
+/*
+ * Author's assumptions about input:
+ * 1. Each password is at most 59 character long.
+ * 2. Each password does only contain ASCII symbols.
+ * 3. Each password is at least as long as the second number.
  */
 
 #include <stdbool.h>
@@ -42,26 +74,56 @@
 #include <stdlib.h>
 
 #define BUFFER_SIZE 60
-#define CONFIG_PART_TWO false
+#define CONFIG_PART_TWO true
 
 void usage(const char *program_name)
 {
-	fprintf(stderr, "Usage:\n\t%s <infile>", program_name ?: "password-philosophy");
+	fprintf(stderr, "Usage:\n\t%s <infile>", program_name ?:
+			"password-philosophy");
+}
+
+bool is_valid_one(const int min_times, const int max_times, const char
+		policy_letter, const char *ptr)
+{
+	unsigned int occourences = 0;
+	while (*ptr) {
+		if (*ptr == policy_letter)
+			++occourences;
+		++ptr;
+	}
+
+	return min_times <= occourences && occourences <= max_times;
+}
+
+bool is_valid_two(const int position1, const int position2, const char
+		policy_letter, const char *ptr)
+{
+	// Position is one-based
+	const int i1 = position1 - 1;
+	const int i2 = position2 - 1;
+
+	return (ptr[i1] == policy_letter || ptr[i2] == policy_letter) &&
+		ptr[i1] != ptr[i2];
 }
 
 int main(int argc, char *argv[])
 {
 	unsigned int counter_valid = 0;
-	unsigned int min_times, max_times;
-	char policy_letter;
+	unsigned int nr1, nr2;
+	char letter;
 	char password_buffer[BUFFER_SIZE];
 	FILE *password_list;
+	bool (*is_valid)(const int, const int, const char, char const *);
 
-	if (argc < 2)
-	{
+	if (argc < 2) {
 		usage(argv[1]);
 		exit(EXIT_FAILURE);
 	}
+
+	if (CONFIG_PART_TWO)
+		is_valid = is_valid_two;
+	else
+		is_valid = is_valid_one;
 
 	password_list = fopen(argv[1], "r");
 	if (!password_list) {
@@ -69,21 +131,15 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	while(1 < fscanf(password_list, "%u-%u %c: %59s", &min_times, &max_times,
-				&policy_letter, password_buffer)) {
-		unsigned int occourences = 0;
-		const char *ptr = password_buffer;
-
-		while (*ptr)
-		{
-			if (*ptr == policy_letter)
-				++occourences;
-			++ptr;
-		}
-
-		if (min_times <= occourences && occourences <= max_times)
+	// fscanf return value will always be at least 1 due to string match
+	// for password_buffer
+	while(1 < fscanf(password_list, "%u-%u %c: %59s", &nr1, &nr2, &letter,
+				password_buffer)) {
+		if (is_valid(nr1, nr2, letter, password_buffer))
 			++counter_valid;
 	}
+
+	fclose(password_list);
 
 	printf("number of valid passwords:\n%u\n", counter_valid);
 
